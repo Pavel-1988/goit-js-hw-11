@@ -50,6 +50,7 @@ button:hover{
   background-color: #492dd7
 }
 
+
 .gallery{
     margin: 0px 10px 0px 10px;
     padding-top: 60px;
@@ -98,4 +99,19 @@ button:hover{
   color: rgb(16, 13, 89);
   margin: 0px;
   font-size: 13px;
+}
+
+
+.btn-load-more{
+  margin-top: 20px;
+  margin-bottom: 20px;
+  
+}
+
+.container{
+  text-align: center;
+}
+
+.btn-load-more.is-hidden {
+  display: none;
 }
