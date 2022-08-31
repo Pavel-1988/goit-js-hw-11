@@ -1,5 +1,4 @@
 import  searchApi   from './js/apiSearch'
-// import { renderMarkup } from './js/renderMarkup'
 import cards from "./templates/cards.hbs"
 import { Notify } from 'notiflix/build/notiflix-notify-aio';
 import SimpleLightbox from "simplelightbox";
@@ -10,6 +9,10 @@ let query = '';
 let page = 1;
 const perPage = 40;
 
+let lightbox = new SimpleLightbox('.gallery a', {
+  captionDelay: 150,
+});
+
 
 const searchForm = document.querySelector('.search-form')
 const gallery = document.querySelector('.gallery')
@@ -19,42 +22,57 @@ searchForm.addEventListener('submit', onSubmit);
 
 async function onSubmit(evt) {
     evt.preventDefault();
-    query = evt.currentTarget.searchQuery.value.trim()
-    gallery.innerHTML = '';
+    query = evt.currentTarget.searchQuery.value.trim();
     
     if (query === '') {
-    return;
+        Notify.failure('Please enter some query .')
+        return;
     }
-    
-    await searchApi(query, page, perPage)
-        .then(data => {
-            if (data.totalHits === 0) {
-                Notify.failure('Sorry, there are no images matching your search query. Please try again.')
+    page = 1;
+    gallery.innerHTML = '';
+     
+    const response = await searchApi(query, page, perPage);
+
+     
+    try {
+        if (response.totalHits === 0) {
+            Notify.failure('Sorry, there are no images matching your search query. Please try again.')
+            loadMore.classList.add('is-hidden')
+        }
+        else {
+            const markup = cards(response.hits)
+            gallery.insertAdjacentHTML('beforeend', markup)
+            Notify.success(`Hooray! We found ${response.totalHits} images.`)
+            lightbox.refresh();
+
+            //=== при перевірці словом "kate" - тобто там де картинок менше 40 в мене одразу два алерта. 
+            //без цього, червоний алерт з'являється писла натискання на кнопку яка потім зникає - чи це вірно
+            if (response.totalHits < 40) {
+                loadMore.classList.add('is-hidden')
+                Notify.failure('We are sorry, but you have reached the end of search results.')
             }
-            else {
-                const markup = cards(data.hits)
-                gallery.insertAdjacentHTML('beforeend', markup)
-                smoothScroll()
-                Notify.success(`Hooray! We found ${data.totalHits} images.`)
-                let simpleLightBox = new SimpleLightbox('.gallery a').refresh()
-                
-                if (data.totalHits > perPage) {                  
-                    loadMore.classList.remove('is-hidden')
-                }
+            //================
+
+            if (response.totalHits > perPage) {
+                loadMore.classList.remove('is-hidden')
             }
-        }).catch(error => console.log(error))
+        }
+    } catch (error) {
+        console.log(error)
+    }
+
   
 }
 loadMore.addEventListener('click',onLoadMore)
 
-async function onLoadMore(evt) {
+ function onLoadMore(evt) {
     page += 1
-    await searchApi(query, page, perPage)
+     searchApi(query, page, perPage)
         .then(data => {
             const markup = cards(data.hits)
             gallery.insertAdjacentHTML('beforeend', markup)
             smoothScroll()
-            let simpleLightBox = new SimpleLightbox('.gallery a').refresh()
+            lightbox.refresh();
             const endOfSearch = Math.ceil(data.totalHits / perPage)
                 if (page > endOfSearch) {                
                 loadMore.classList.add('is-hidden')          
