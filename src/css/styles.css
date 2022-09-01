@@ -60,6 +60,7 @@ button:hover{
 }
 
 .gallery__link{
+  display: block;
   margin-top: 20px;
   min-width: 320px;
   flex-basis: calc(25% - 20px);
@@ -84,7 +85,7 @@ button:hover{
 .photo-card__img {
   display: block;
   height: 200px;
-  background-image: cover;
+  object-fit: cover;
 }
 
 .info {

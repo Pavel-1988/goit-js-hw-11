@@ -31,34 +31,27 @@ async function onSubmit(evt) {
     page = 1;
     gallery.innerHTML = '';
      
-    const response = await searchApi(query, page, perPage);
-
      
     try {
+        const response = await searchApi(query, page, perPage);
+        
         if (response.totalHits === 0) {
             Notify.failure('Sorry, there are no images matching your search query. Please try again.')
             loadMore.classList.add('is-hidden')
         }
         else {
-            const markup = cards(response.hits)
-            gallery.insertAdjacentHTML('beforeend', markup)
+            gallery.insertAdjacentHTML('beforeend', cards(response.hits))
             Notify.success(`Hooray! We found ${response.totalHits} images.`)
             lightbox.refresh();
 
-            //=== при перевірці словом "kate" - тобто там де картинок менше 40 в мене одразу два алерта. 
-            //без цього, червоний алерт з'являється писла натискання на кнопку яка потім зникає - чи це вірно
-            if (response.totalHits < 40) {
-                loadMore.classList.add('is-hidden')
-                Notify.failure('We are sorry, but you have reached the end of search results.')
-            }
-            //================
 
             if (response.totalHits > perPage) {
                 loadMore.classList.remove('is-hidden')
             }
         }
-    } catch (error) {
-        console.log(error)
+    }
+    catch (error) {
+       Notify.failure('Sorry, there are no images matching your search query. Please try again.')
     }
 
   
@@ -68,17 +61,16 @@ loadMore.addEventListener('click',onLoadMore)
  function onLoadMore(evt) {
     page += 1
      searchApi(query, page, perPage)
-        .then(data => {
-            const markup = cards(data.hits)
-            gallery.insertAdjacentHTML('beforeend', markup)
-            smoothScroll()
-            lightbox.refresh();
-            const endOfSearch = Math.ceil(data.totalHits / perPage)
-                if (page > endOfSearch) {                
-                loadMore.classList.add('is-hidden')          
-                Notify.failure('We are sorry, but you have reached the end of search results.')
-                }
-        })
+    .then(data => {
+        gallery.insertAdjacentHTML('beforeend', cards(data.hits))
+        smoothScroll()
+        lightbox.refresh();
+        const endOfSearch = Math.ceil(data.totalHits / perPage)
+        if (page > endOfSearch) {                
+            loadMore.classList.add('is-hidden')          
+            Notify.failure('We are sorry, but you have reached the end of search results.')
+        }
+    })
 
 }
 
